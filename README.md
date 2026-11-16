@@ -40,6 +40,7 @@ Pick a colour theme and card text size under **Appearance** in the sidebar: Wash
 - Commit. The app re-reads the manifest each time it opens (when online; offline it uses the last copy it saw).
 - Cards are matched by their ID, so edited cards update in place and your review history is kept.
 - You can also drag a deck file onto the sidebar at any time.
+- To remove a deck, select it in the sidebar and tap **Remove “…” deck** under the list. **Settings and backup → Remove all cards and progress** clears everything. Both only affect the device you're on.
 
 ## Your progress
 

@@ -143,6 +143,7 @@ details{font-size:14.5px} summary{cursor:pointer;color:var(--muted)}
 .controls{font-size:14px;color:var(--muted);display:grid;gap:6px}
 .controls table{border-collapse:collapse;width:100%} .controls td{padding:4px 6px;border-top:1px solid var(--line);vertical-align:top} .controls td:first-child{white-space:nowrap;color:var(--ink);font-weight:500}
 @media (pointer:coarse){ .deck{padding:10px 12px} .chip{padding:7px 13px} .grades button{padding:15px 6px} .modebar button,.toolbar button{min-height:44px} }
+button.danger{color:var(--again);border-color:color-mix(in srgb,var(--again) 45%,var(--line))}
 [hidden]{display:none!important}
 @media (max-width:760px){.app{grid-template-columns:1fr} aside{border-right:0;border-bottom:1px solid var(--line)} .stats{grid-template-columns:repeat(2,1fr)} .card{font-size:18px;padding:22px 18px} .grades{gap:6px}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
@@ -153,7 +154,7 @@ details{font-size:14.5px} summary{cursor:pointer;color:var(--muted)}
 <aside>
   <div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#2f4a73"/><g transform="rotate(-11 32 34)"><rect x="16" y="15" width="28" height="36" rx="5" fill="#8fa6c9"/></g><g transform="rotate(7 34 32)"><rect x="20" y="13" width="28" height="36" rx="5" fill="#f6efe2"/><circle cx="34" cy="27" r="5.5" fill="#e0604f"/><rect x="27" y="37.5" width="14" height="3" rx="1.5" fill="#2f4a73" opacity=".55"/></g></svg><div><h1>Kioku</h1><small>記憶 · memory</small></div></div>
   <div class="legend"><span><i style="background:var(--easy)"></i>new</span><span><i style="background:var(--again)"></i>learning</span><span><i style="background:var(--good)"></i>due</span></div>
-  <div><h2>Decks</h2><div class="decks" id="decks" style="margin-top:6px"></div></div>
+  <div><h2>Decks</h2><div class="decks" id="decks" style="margin-top:6px"></div><button id="rmDeck" class="danger" style="margin-top:8px" hidden></button><div id="rmMsg" class="msg" style="margin-top:8px" hidden></div></div>
   <div><h2>Filter by tag</h2><div class="chips" id="tags" style="margin-top:6px"></div></div>
   <div style="display:grid;gap:10px"><h2>Appearance</h2>
     <div class="themes" id="themes" role="group" aria-label="Colour theme"></div>
@@ -172,6 +173,7 @@ details{font-size:14.5px} summary{cursor:pointer;color:var(--muted)}
       <label for="bkIn">Restore from backup (paste)<textarea id="bkIn" rows="3"></textarea></label>
       <button id="bkRestore">Restore</button>
       <div id="bkMsg" class="msg" hidden></div>
+      <button id="rmAll" class="danger">Remove all cards and progress</button>
       <p style="font-size:12.5px;color:var(--muted);margin:0">Progress is saved in this browser only. Use a backup to move it to another device.</p>
     </div>
   </details>
@@ -310,6 +312,7 @@ function side(){
   const decks={}; for(const n of Object.values(DB.notes)){ const parts=n.deck.split('::'); for(let i=1;i<=parts.length;i++) decks[parts.slice(0,i).join('::')]=true; }
   const names=Object.keys(decks).sort();
   const row=(name,label,depth)=>{ const c=counts(x=>!name||x.n.deck===name||x.n.deck.startsWith(name+'::')); return `<button class="deck" data-deck="${esc(name)}" aria-pressed="${F.deck===name}" style="padding-left:${8+depth*14}px"><span>${esc(label)}</span><span class="counts"><span class="c-new">${c.n}</span><span class="c-lrn">${c.l}</span><span class="c-due">${c.d}</span></span></button>`; };
+  const rm=$('#rmDeck'); rm.hidden=!F.deck; if(F.deck) rm.textContent=`Remove “${F.deck.split('::').pop()}” deck`;
   $('#decks').innerHTML=row('','All decks',0)+names.map(nm=>row(nm,nm.split('::').pop(),nm.split('::').length-1)).join('');
   const tags={}; for(const n of Object.values(DB.notes)) n.tags.forEach(t=>tags[t]=(tags[t]||0)+1);
   const order=['p1','p2','p3','tf-trap','formula','method','concept','pair','mistake'];
@@ -342,6 +345,21 @@ $('#misses').onclick=async()=>{ const d=new Date().toISOString().slice(0,10);
   try{ await navigator.clipboard.writeText(rows); $('#misses').textContent=`Copied ${misses.length} rows`; }catch(e){ $('#paste').value=rows; $('#paste').closest('details').open=true; showMsg($('#impMsg'),'Copy was blocked, so the rows are in the paste box above: select and copy them.'); } };
 $('#bkCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText(JSON.stringify(DB)); showMsg($('#bkMsg'),'Backup copied. Paste it into Restore on the other device.'); }catch(e){ $('#bkIn').value=JSON.stringify(DB); showMsg($('#bkMsg'),'Copy was blocked: the backup is in the box below, copy it from there.'); } };
 $('#bkDl').onclick=()=>{ try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(DB)],{type:'application/json'})); a.download='kioku-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); showMsg($('#bkMsg'),'If nothing downloaded, use Copy progress backup instead (some viewers block downloads).'); }catch(e){ showMsg($('#bkMsg'),'Download blocked here. Use Copy progress backup.'); } };
+/* ---------- removing decks ---------- */
+const inDeck=(n,name)=>n.deck===name||n.deck.startsWith(name+'::');
+function removeNotes(pred){ let notes=0,cards=0;
+  for(const [g,n] of Object.entries(DB.notes)){ if(!pred(n)) continue; delete DB.notes[g]; notes++;
+    for(const id of Object.keys(DB.prog)) if(id.startsWith(g+'#')){ delete DB.prog[id]; cards++; } }
+  misses=misses.filter(m=>DB.notes[m.n.guid]); F.deck='';
+  if(F.tag&&!Object.values(DB.notes).some(n=>n.tags.includes(F.tag))) F.tag='';
+  save(); if(MODE==='cram') startCram(); shown=false; draw(); return notes; }
+const autoNote='\n\nIf this deck is listed in decks/manifest.json it will load again next time the app opens.';
+$('#rmDeck').onclick=()=>{ const name=F.deck; if(!name) return; const count=Object.values(DB.notes).filter(n=>inDeck(n,name)).length;
+  if(!confirm(`Remove “${name.replace(/::/g,' › ')}” and its ${count} notes from this device?\n\nTheir review history is deleted too. This can't be undone (unless you have a backup).`+autoNote)) return;
+  const n=removeNotes(x=>inDeck(x,name)); showMsg($('#rmMsg'),`Removed ${n} notes from “${name.split('::').pop()}”.`); };
+$('#rmAll').onclick=()=>{ const count=Object.keys(DB.notes).length; if(!count){ showMsg($('#bkMsg'),'There are no cards to remove.'); return; }
+  if(!confirm(`Remove all ${count} notes and all review history from this device?\n\nThis can't be undone (unless you have a backup).`+autoNote)) return;
+  removeNotes(()=>true); DB.newDay={date:'',count:0}; save(); draw(); showMsg($('#bkMsg'),`Removed all ${count} notes.`); };
 $('#bkRestore').onclick=()=>{ try{ const o=JSON.parse($('#bkIn').value); if(!o.notes||!o.prog) throw 0; DB=Object.assign(DB,o); save(); showMsg($('#bkMsg'),`Restored ${Object.keys(o.notes).length} notes and their progress.`); draw(); }catch(e){ showMsg($('#bkMsg'),'That doesn\'t look like a Kioku backup. Paste the whole text you copied.'); } };
 /* ---------- appearance: theme + card text size ---------- */
 const THEMES=[['auto','Auto (Washi / Yoru)','',''],['washi','Washi 和紙 · warm paper','#f5f0e6','#2c4a7c'],['hojicha','Hōjicha ほうじ茶 · sepia','#e9dfcc','#7a4f2a'],['matcha','Matcha 抹茶 · sage','#e7ece2','#3d6a4f'],['yoru','Yoru 夜 · warm dark','#24211e','#9bb8ea'],['sumi','Sumi 墨 · dim night','#111010','#cfae74']];
