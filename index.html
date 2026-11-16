@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kioku">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Kioku 記憶</title>
+<meta name="theme-color" content="#f5f0e6">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},startup:{typeset:false}};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js" async></script>
+<style>
+:root{
+  /* Kioku 記憶. Five gentle themes; "Auto" uses Washi by day and Yoru when the device is in dark mode. */
+  --display:"Shippori Mincho", "Hiragino Mincho ProN", Georgia, serif;
+  --body:"Zen Kaku Gothic New", "Hiragino Sans", system-ui, -apple-system, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --card-fs:20px;
+}
+/* Washi 和紙: warm paper, indigo ink (default light) */
+:root, :root[data-theme="washi"]{
+  --bg:#f5f0e6; --surface:#fffdf8; --sunken:#efe8db; --ink:#24201c; --muted:#5a5148; --line:#ddd3c2; --line-strong:#c7baa5;
+  --accent:#2c4a7c; --accent-ink:#ffffff; --accent-soft:#e3e9f3; --cloze:#1f3f73; --cloze-soft:#dfe7f4;
+  --again:#b3261e; --hard:#8a5300; --good:#2e6b3a; --easy:#2c4a7c;
+  --shadow:0 1px 2px rgba(60,45,25,.06),0 4px 14px rgba(60,45,25,.06); color-scheme:light;
+}
+/* Hōjicha ほうじ茶: sepia, lowest glare of the light themes */
+:root[data-theme="hojicha"]{
+  --bg:#e9dfcc; --surface:#f3ead9; --sunken:#e2d6c0; --ink:#3b3026; --muted:#665848; --line:#d3c4a9; --line-strong:#bba98a;
+  --accent:#7a4f2a; --accent-ink:#fff8ee; --accent-soft:#e6d5bc; --cloze:#6e3f17; --cloze-soft:#ead7b9;
+  --again:#a3341f; --hard:#7d4d00; --good:#3e6a2f; --easy:#3f5a86;
+  --shadow:0 1px 2px rgba(80,55,20,.07); color-scheme:light;
+}
+/* Matcha 抹茶: soft sage green */
+:root[data-theme="matcha"]{
+  --bg:#e7ece2; --surface:#f4f7f0; --sunken:#dde5d6; --ink:#243026; --muted:#525f55; --line:#cbd6c6; --line-strong:#adbcaa;
+  --accent:#3d6a4f; --accent-ink:#ffffff; --accent-soft:#d6e4d9; --cloze:#2c5a40; --cloze-soft:#d3e5d7;
+  --again:#a8321f; --hard:#7d5600; --good:#2e6a3e; --easy:#33598a;
+  --shadow:0 1px 2px rgba(30,60,35,.07); color-scheme:light;
+}
+/* Yoru 夜: warm charcoal (default dark) */
+:root[data-theme="yoru"]{
+  --bg:#1a1816; --surface:#24211e; --sunken:#1f1d1a; --ink:#efe9df; --muted:#b9ae9f; --line:#3a352f; --line-strong:#514a41;
+  --accent:#9bb8ea; --accent-ink:#14213a; --accent-soft:#263247; --cloze:#bcd0f5; --cloze-soft:#2a3550;
+  --again:#f08a7c; --hard:#e6b45c; --good:#86c995; --easy:#9bb8ea;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme]){
+  --bg:#1a1816; --surface:#24211e; --sunken:#1f1d1a; --ink:#efe9df; --muted:#b9ae9f; --line:#3a352f; --line-strong:#514a41;
+  --accent:#9bb8ea; --accent-ink:#14213a; --accent-soft:#263247; --cloze:#bcd0f5; --cloze-soft:#2a3550;
+  --again:#f08a7c; --hard:#e6b45c; --good:#86c995; --easy:#9bb8ea;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}}
+/* Sumi 墨: near-black with softened text, for studying in bed or on a plane */
+:root[data-theme="sumi"]{
+  --bg:#111010; --surface:#191817; --sunken:#151413; --ink:#d6cfc3; --muted:#958c7f; --line:#2b2926; --line-strong:#3d3a35;
+  --accent:#cfae74; --accent-ink:#1b1408; --accent-soft:#2a2418; --cloze:#e2c48f; --cloze-soft:#2c2619;
+  --again:#e08474; --hard:#d6ad62; --good:#8fbf8f; --easy:#9fb5d9;
+  --shadow:none; color-scheme:dark;
+}
+:root[data-size="s"]{--card-fs:18px} :root[data-size="l"]{--card-fs:23px} :root[data-size="xl"]{--card-fs:26px}
+*{box-sizing:border-box} html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+h1{font:700 22px/1 var(--display);margin:0;letter-spacing:.02em}
+h2{font:700 13px var(--body);margin:0;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;flex:none;display:block;border-radius:9px;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.brand small{display:block;font:500 12px var(--body);color:var(--muted);margin-top:3px;letter-spacing:.04em}
+.app{display:grid;grid-template-columns:300px 1fr;min-height:100%}
+aside{background:var(--surface);border-right:1px solid var(--line);padding:calc(20px + env(safe-area-inset-top)) 16px 20px max(16px,env(safe-area-inset-left));display:grid;gap:22px;align-content:start}
+main{padding:28px max(16px,env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) 16px;display:grid;gap:16px;align-content:start;justify-items:center}
+.wrap{width:100%;max-width:740px;display:grid;gap:16px}
+button{touch-action:manipulation;font:500 14.5px var(--body);cursor:pointer;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);padding:8px 14px}
+button:hover{background:var(--sunken)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+button.primary:hover{filter:brightness(1.08);background:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+.icon-btn{padding:6px 10px;font-size:13px;color:var(--muted)}
+.decks{display:grid;gap:2px}
+.deck{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;text-align:left;border:0;background:none;padding:6px 10px;border-radius:7px;font-size:15px}
+.deck[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.counts{font:600 13px var(--mono);display:flex;gap:9px;font-variant-numeric:tabular-nums}
+.counts span{min-width:2ch;text-align:right}
+.c-new{color:var(--easy)} .c-lrn{color:var(--again)} .c-due{color:var(--good)}
+.legend{font:500 12px var(--body);display:flex;gap:10px;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13.5px;padding:4px 11px;border-radius:999px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drop{border:1.5px dashed var(--line-strong);border-radius:10px;padding:12px;font-size:14px;color:var(--muted);text-align:center;background:var(--sunken)}
+.drop.over{border-color:var(--accent);color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:30px 30px;min-height:240px;display:grid;gap:16px;align-content:start;font-size:var(--card-fs);line-height:1.7;box-shadow:var(--shadow)}
+.card.tap{cursor:pointer}
+.card .tapnote{font-size:13px;color:var(--muted);text-align:center;margin-top:auto}
+.card .meta{font:500 13px var(--body);color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;letter-spacing:.02em}
+.card .meta span:last-child{background:var(--sunken);padding:1px 10px;border-radius:999px}
+.card hr{border:0;border-top:1px solid var(--line);margin:6px 0;width:100%}
+.card small{font-size:14px;color:var(--muted)}
+.cloze{font-weight:700;color:var(--cloze);background:var(--cloze-soft);padding:1px 6px;border-radius:5px}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.grades button{display:grid;gap:2px;padding:11px 6px;font-weight:700;font-size:15.5px;border-width:1.5px}
+.grades button span{font:500 13px var(--mono);color:var(--muted)}
+.g1{color:var(--again);border-color:color-mix(in srgb,var(--again) 45%,var(--line))!important}
+.g2{color:var(--hard);border-color:color-mix(in srgb,var(--hard) 45%,var(--line))!important}
+.g3{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,var(--line))!important}
+.g4{color:var(--easy);border-color:color-mix(in srgb,var(--easy) 45%,var(--line))!important}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+.stat b{display:block;font:600 26px/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:13.5px;color:var(--muted)}
+.fc{display:flex;gap:6px;align-items:end;height:64px}
+.fc div{flex:1;display:grid;gap:3px;justify-items:center;font:500 12px var(--mono);color:var(--muted)}
+.fc i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;opacity:.85}
+.msg{font-size:14px;padding:9px 12px;border-radius:8px;background:var(--accent-soft)}
+.done{text-align:center;color:var(--muted);font-size:17px;padding:20px 0}
+textarea,input[type=number]{font:14px var(--mono);background:var(--sunken);color:var(--ink);border:1px solid var(--line-strong);border-radius:7px;padding:7px;width:100%}
+label{font-size:14px;color:var(--muted);display:grid;gap:4px}
+.modebar{display:flex;gap:6px}
+details{font-size:14.5px} summary{cursor:pointer;color:var(--muted)}
+.keys{font-size:13.5px;color:var(--muted);margin:0}
+.keys kbd{font:600 12px var(--mono);background:var(--surface);border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:5px;padding:1px 6px;color:var(--ink)}
+.themes{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:36px;height:36px;padding:0;border-radius:50%;border:2px solid var(--line-strong);background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%);position:relative}
+.sw[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
+.sw.auto{background:linear-gradient(135deg,#f5f0e6 50%,#1a1816 50%);font:700 10px var(--body);color:#888}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:6px 12px}
+.seg button+button{border-left:1px solid var(--line-strong)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.app.focus{grid-template-columns:1fr} .app.focus aside{display:none}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:9;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.controls{font-size:14px;color:var(--muted);display:grid;gap:6px}
+.controls table{border-collapse:collapse;width:100%} .controls td{padding:4px 6px;border-top:1px solid var(--line);vertical-align:top} .controls td:first-child{white-space:nowrap;color:var(--ink);font-weight:500}
+@media (pointer:coarse){ .deck{padding:10px 12px} .chip{padding:7px 13px} .grades button{padding:15px 6px} .modebar button,.toolbar button{min-height:44px} }
+[hidden]{display:none!important}
+@media (max-width:760px){.app{grid-template-columns:1fr} aside{border-right:0;border-bottom:1px solid var(--line)} .stats{grid-template-columns:repeat(2,1fr)} .card{font-size:18px;padding:22px 18px} .grades{gap:6px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#2f4a73"/><g transform="rotate(-11 32 34)"><rect x="16" y="15" width="28" height="36" rx="5" fill="#8fa6c9"/></g><g transform="rotate(7 34 32)"><rect x="20" y="13" width="28" height="36" rx="5" fill="#f6efe2"/><circle cx="34" cy="27" r="5.5" fill="#e0604f"/><rect x="27" y="37.5" width="14" height="3" rx="1.5" fill="#2f4a73" opacity=".55"/></g></svg><div><h1>Kioku</h1><small>記憶 · memory</small></div></div>
+  <div class="legend"><span><i style="background:var(--easy)"></i>new</span><span><i style="background:var(--again)"></i>learning</span><span><i style="background:var(--good)"></i>due</span></div>
+  <div><h2>Decks</h2><div class="decks" id="decks" style="margin-top:6px"></div></div>
+  <div><h2>Filter by tag</h2><div class="chips" id="tags" style="margin-top:6px"></div></div>
+  <div style="display:grid;gap:10px"><h2>Appearance</h2>
+    <div class="themes" id="themes" role="group" aria-label="Colour theme"></div>
+    <div class="row" style="justify-content:space-between"><span style="font-size:14px;color:var(--muted)" id="themeName"></span>
+      <div class="seg" id="sizes" role="group" aria-label="Card text size"><button data-size="s" aria-label="Small text" style="font-size:12px">A</button><button data-size="m" aria-label="Medium text" style="font-size:14px">A</button><button data-size="l" aria-label="Large text" style="font-size:17px">A</button><button data-size="xl" aria-label="Extra large text" style="font-size:20px">A</button></div></div>
+  </div>
+  <div style="display:grid;gap:8px"><h2>Import</h2>
+    <div class="drop" id="drop">Drop an Anki .txt export here, or<br><label for="file" style="display:inline;color:var(--accent);cursor:pointer;text-decoration:underline">choose a file</label><input id="file" type="file" accept=".txt,.tsv,.csv,text/plain" multiple hidden></div>
+    <details><summary>Paste deck text instead</summary><textarea id="paste" rows="4" placeholder="#separator:tab ..."></textarea><button id="pasteGo" style="margin-top:6px">Import pasted text</button></details>
+    <div id="impMsg" class="msg" hidden></div>
+  </div>
+  <details><summary>Settings and backup</summary>
+    <div style="display:grid;gap:8px;margin-top:8px">
+      <label for="newPerDay">New cards per day<input id="newPerDay" type="number" min="0" max="500" value="20"></label>
+      <div class="row"><button id="bkCopy">Copy progress backup</button><button id="bkDl">Download backup</button></div>
+      <label for="bkIn">Restore from backup (paste)<textarea id="bkIn" rows="3"></textarea></label>
+      <button id="bkRestore">Restore</button>
+      <div id="bkMsg" class="msg" hidden></div>
+      <p style="font-size:12.5px;color:var(--muted);margin:0">Progress is saved in this browser only. Use a backup to move it to another device.</p>
+    </div>
+  </details>
+</aside>
+<main><div class="wrap">
+  <div class="stats" id="stats"></div>
+  <div class="toolbar">
+    <div class="modebar"><button id="mStudy" class="primary" aria-pressed="true">Study due cards</button><button id="mCram" aria-pressed="false">Cram all (no scheduling)</button></div>
+    <div class="row"><button id="misses" hidden>Copy my misses</button><button id="focusBtn" title="Hide or show the sidebar">Focus</button></div>
+  </div>
+  <div class="card" id="card" aria-live="polite"></div>
+  <div id="actions"></div>
+  <div><h2 style="margin-bottom:6px">Reviews due, next 7 days</h2><div class="fc" id="fc"></div></div>
+  <details class="controls" id="controls"><summary>Controls: keyboard, clicker, game controller</summary>
+    <table>
+      <tr><td>Show answer</td><td>Tap or click the card · <kbd>Space</kbd> <kbd>Enter</kbd> <kbd>→</kbd> <kbd>PgDn</kbd> · any controller button</td></tr>
+      <tr><td>Again</td><td><kbd>1</kbd> <kbd>←</kbd> <kbd>PgUp</kbd> · controller <b>B</b> / ○ · d-pad left</td></tr>
+      <tr><td>Hard</td><td><kbd>2</kbd> <kbd>↓</kbd> · controller <b>X</b> / □ · d-pad down</td></tr>
+      <tr><td>Good</td><td><kbd>3</kbd> <kbd>→</kbd> <kbd>PgDn</kbd> <kbd>Space</kbd> <kbd>Enter</kbd> · controller <b>A</b> / ✕ · d-pad right</td></tr>
+      <tr><td>Easy</td><td><kbd>4</kbd> <kbd>↑</kbd> · controller <b>Y</b> / △ · d-pad up</td></tr>
+    </table>
+    <span>A two-button presentation clicker works out of the box: <b>next</b> reveals, then marks Good; <b>back</b> marks Again.</span>
+  </details>
+</div></main>
+</div>
+<script type="text/plain" id="builtin">#separator:tab
+#html:true
+#guid column:1
+#notetype column:2
+#deck column:3
+#tags column:6
+sc2005-intro-trap	Basic	NTU::SC2005::Intro	What is a trap?	A CPU-generated interrupt caused by a software error or a request (e.g. a system call).<br><small>Part 1</small>	sc2005 intro concept p2
+sc2005-intro-syscall-tf	Basic	NTU::SC2005::Intro	True or false: a system call always generates a trap.	<b>True.</b> The hardware switches from user to kernel mode and the kernel runs the matching system-call routine.<br><small>Tutorial 1</small>	sc2005 intro tf-trap p1
+sc2005-intro-root	Basic	NTU::SC2005::Intro	Is kernel mode the same as running as root/admin?	No. Kernel/user mode is a hardware mode bit. Root is a user account; root's jobs still run in user mode.<br><small>Part 1</small>	sc2005 intro pair p2
+sc2005-intro-baselimit	Cloze	NTU::SC2005::Intro	Memory protection: legal addresses are {{c1::[base, base + limit − 1]}}; an access outside the range causes a {{c2::trap}}.	base 0x1000, limit 0x1000 → 0x1FFF is legal.<br><small>Part 1 · Tutorial 1</small>	sc2005 intro formula p1
+sc2005-intro-dma	Basic	NTU::SC2005::Intro	DMA vs interrupt-driven I/O?	DMA: controller moves a whole block to memory without the CPU, <b>one interrupt per block</b>, for fast devices. Interrupt-driven: interrupt per small transfer, slow devices.<br><small>Part 1 · Tutorial 1</small>	sc2005 intro pair p2
+sc2005-intro-ihandle	Cloze	NTU::SC2005::Intro	Interrupt handling: (1) {{c1::save the CPU state (PC, registers)}} (2) {{c2::determine the interrupt type}} (3) {{c3::run its ISR via the interrupt vector}}.	<small>Part 1</small>	sc2005 intro method p2
+sc2005-intro-mpvsmp	Basic	NTU::SC2005::Intro	Multiprogramming vs multiprocessing?	Multiprogramming: several programs run concurrently even on one core (goal: CPU utilization). Multiprocessing: several cores (goal: more computing power).<br><small>Tutorial 1</small>	sc2005 intro pair p2
+sc2005-proc-ready-tf	Basic	NTU::SC2005::Processes	True or false: a process ready to run but waiting for the CPU is in the "waiting" state.	<b>False.</b> It is in <b>Ready</b>. Waiting means waiting for I/O or an event.<br><small>Tutorial 2</small>	sc2005 processes tf-trap p1
+sc2005-proc-thread-share	Basic	NTU::SC2005::Processes	What do threads of one process share, and what is private?	Shared: code, data, heap, open files. Private: thread ID, PC, registers, <b>stack</b>.<br><small>Part 2 · Tutorial 2</small>	sc2005 processes concept p1
+sc2005-proc-ipc-tf	Basic	NTU::SC2005::Processes	True or false: message passing uses less memory than shared memory.	<b>False.</b> It uses more: messages are copied through kernel space by send/receive system calls.<br><small>Tutorial 2</small>	sc2005 processes tf-trap p2
+sc2005-proc-wait-tf	Basic	NTU::SC2005::Processes	True or false: a child uses wait() to wait for its parent.	<b>False.</b> The <b>parent</b> calls wait()/join() to wait for its children.<br><small>Tutorial 2</small>	sc2005 processes tf-trap p2
+sc2005-proc-sched	Cloze	NTU::SC2005::Processes	The {{c1::long-term}} scheduler loads jobs disk → memory; the {{c2::short-term}} scheduler picks a ready process for the CPU; the {{c3::medium-term}} scheduler swaps processes out/in under load.	Long-term sets the initial degree of multiprogramming.<br><small>Part 2</small>	sc2005 processes concept p2
+sc2005-proc-m2o	Basic	NTU::SC2005::Processes	Main drawback of many-to-one threading?	One blocking call blocks every user thread mapped to that kernel thread.<br><small>Part 2</small>	sc2005 processes concept p2
+sc2005-proc-models	Basic	NTU::SC2005::Processes	One-to-one vs many-to-many threading?	One-to-one: more concurrency but too many kernel threads (Windows NT). Many-to-many: enough kernel threads, but the mapping is hard to decide (goroutines, C++20 coroutines).<br><small>Part 2</small>	sc2005 processes pair p3
+sc2005-proc-pcb	Basic	NTU::SC2005::Processes	What does a PCB hold?	State, pid, PC, registers, priority, memory info (base/limit), open files, pointer to the next PCB. Lives in kernel space.<br><small>Part 2</small>	sc2005 processes concept p2
+sc2005-sch-wait	Cloze	NTU::SC2005::Scheduling	Waiting time = {{c1::turnaround − CPU bursts − I/O bursts}}; turnaround = {{c2::completion − arrival}}; response = {{c3::first run − arrival}}.	<small>Part 3</small>	sc2005 scheduling formula p1
+sc2005-sch-optimal	Basic	NTU::SC2005::Scheduling	Which algorithm minimizes average waiting time?	SJF / SRTF (preemptive SJF). Risk: starvation of long jobs.<br><small>Part 3</small>	sc2005 scheduling concept p1
+sc2005-sch-convoy	Basic	NTU::SC2005::Scheduling	What is the convoy effect, and which algorithm has it?	FCFS: short jobs wait behind a long one. Bursts 24, 3, 3 → avg wait 17; reordered 3, 3, 24 → 3.<br><small>Part 3</small>	sc2005 scheduling concept p1
+sc2005-sch-rr	Basic	NTU::SC2005::Scheduling	Round Robin: effect of a very large vs very small quantum?	Large q → degenerates to FCFS. Small q → many context switches, high overhead. Wait ≤ (n−1)q.<br><small>Part 3</small>	sc2005 scheduling concept p1
+sc2005-sch-amp-tf	Basic	NTU::SC2005::Scheduling	True or false: partitioned (AMP) scheduling suffers cache migration overhead.	<b>False.</b> That is <b>global (SMP)</b>. Partitioned suffers load imbalance (mapping is NP-hard).<br><small>Tutorial 3</small>	sc2005 scheduling tf-trap p1
+sc2005-sch-must	Basic	NTU::SC2005::Scheduling	When MUST the short-term scheduler run to keep the CPU busy?	When the running process blocks or terminates (or a process arrives at an idle core). Not on every admission.<br><small>Part 3 · Tutorial 3</small>	sc2005 scheduling tf-trap p2
+sc2005-sch-eff	Cloze	NTU::SC2005::Scheduling	RR CPU efficiency with S < Q < T: {{c1::T / (T + S·⌈T/Q⌉)}}. With Q > T: {{c2::T / (T + S)}}.	T = run time before blocking, S = switch cost; count the first switch.<br><small>Tutorial 3</small>	sc2005 scheduling formula p2
+sc2005-sch-aging	Basic	NTU::SC2005::Scheduling	How is starvation in priority scheduling fixed?	Aging: slowly raise the priority of processes that have waited long.<br><small>Part 3</small>	sc2005 scheduling concept p2
+sc2005-sync-props	Basic	NTU::SC2005::Sync	Three properties a critical-section solution needs?	Mutual exclusion, progress, bounded waiting.<br><small>Part 4</small>	sc2005 sync concept p1
+sc2005-sync-prog-bw-tf	Basic	NTU::SC2005::Sync	True or false: progress implies bounded waiting.	<b>False.</b> A scheme that always favours P0 has progress but P1 may wait unboundedly.<br><small>Tutorial 4</small>	sc2005 sync tf-trap p1
+sc2005-sync-alg1	Basic	NTU::SC2005::Sync	Algorithm 1 (shared turn only) fails which property?	Progress (strict alternation): if it's P0's turn but P0 is in a long remainder section, P1 can't enter a free CS.<br><small>Part 4</small>	sc2005 sync concept p1
+sc2005-sync-alg2	Basic	NTU::SC2005::Sync	Algorithm 2 (flag[] only) fails which properties?	Progress and bounded waiting: both set their flag, then both spin forever.<br><small>Part 4</small>	sc2005 sync concept p1
+sc2005-sync-tas	Basic	NTU::SC2005::Sync	The simple TestAndSet lock fails which property?	Bounded waiting. Mutual exclusion and progress hold.<br><small>Part 4</small>	sc2005 sync concept p1
+sc2005-sync-peterson	Cloze	NTU::SC2005::Sync	Peterson entry for Pi: flag[i] = true; {{c1::turn = k}}; while ({{c2::flag[k] &amp;&amp; turn == k}});	Satisfies all three properties, for 2 processes.<br><small>Part 4</small>	sc2005 sync method p1
+sc2005-sync-sem	Cloze	NTU::SC2005::Sync	Blocking semaphore. Wait: value--; if (value {{c1::&lt; 0}}) block(). Signal: value++; if (value {{c2::≤ 0}}) wakeup().	Negative value = number of waiting processes.<br><small>Part 5</small>	sc2005 sync method p1
+sc2005-sync-negval	Basic	NTU::SC2005::Sync	A blocking semaphore has value −3. Meaning?	3 processes are blocked in its list L.<br><small>Part 5</small>	sc2005 sync concept p1
+sc2005-sync-bb-swap	Basic	NTU::SC2005::Sync	Bounded-buffer consumer does Wait(mutex) before Wait(full). What happens when the buffer is empty?	<b>Deadlock:</b> consumer blocks on full while holding mutex, so no producer can add an item.<br><small>Part 5</small>	sc2005 sync tf-trap p1
+sc2005-sync-bb	Cloze	NTU::SC2005::Sync	Bounded buffer init: full = {{c1::0}}, empty = {{c2::n}}, mutex = {{c3::1}}.	Producer: Wait(empty) Wait(mutex) … Signal(mutex) Signal(full).<br><small>Part 5</small>	sc2005 sync method p1
+sc2005-sync-rw	Basic	NTU::SC2005::Sync	Readers–writers: what do the first and last readers do?	First reader: Wait(wrt) to lock out writers. Last reader: Signal(wrt).<br><small>Part 5</small>	sc2005 sync concept p2
+sc2005-sync-intr-tf	Basic	NTU::SC2005::Sync	True or false: disabling interrupts during the CS achieves mutual exclusion.	<b>True</b> (single CPU): no context switch can happen.<br><small>Tutorial 4</small>	sc2005 sync tf-trap p2
+sc2005-dl-cond	Basic	NTU::SC2005::Deadlock	Four necessary conditions for deadlock?	Mutual exclusion, hold and wait, no preemption, circular wait (all at once).<br><small>Part 5 (Deadlocks)</small>	sc2005 deadlock concept p1
+sc2005-dl-cycle-tf	Basic	NTU::SC2005::Deadlock	True or false: a cycle in a resource-allocation graph means deadlock.	<b>False</b> with several instances per type (only possible). True if every type has one instance.<br><small>Tutorial 6</small>	sc2005 deadlock tf-trap p1
+sc2005-dl-one-tf	Basic	NTU::SC2005::Deadlock	True or false: a deadlock can't involve only one process.	<b>True.</b> Hold-and-wait can't be satisfied.<br><small>Tutorial 6</small>	sc2005 deadlock tf-trap p2
+sc2005-dl-phil4-tf	Basic	NTU::SC2005::Deadlock	True or false: with at most 4 of 5 philosophers hungry, deadlock can still occur.	<b>False.</b> At least one gets both chopsticks (breaks circular wait).<br><small>Tutorial 6</small>	sc2005 deadlock tf-trap p1
+sc2005-dl-both	Basic	NTU::SC2005::Deadlock	"Pick up chopsticks only if both are free" removes which condition?	Hold and wait.<br><small>Part 5 (Deadlocks)</small>	sc2005 deadlock concept p2
+sc2005-dl-unsafe	Basic	NTU::SC2005::Deadlock	Safe vs unsafe state?	Safe: a completion sequence exists → no deadlock. Unsafe: deadlock possible, not certain.<br><small>Part 5 (Deadlocks)</small>	sc2005 deadlock pair p1
+sc2005-dl-banker	Cloze	NTU::SC2005::Deadlock	Banker's safety: Work = Available; find unfinished Pi with {{c1::Need_i ≤ Work}}; then {{c2::Work += Allocation_i}}; all finish → {{c3::safe}}.	Need = Max − Allocation.<br><small>Part 5 (Deadlocks)</small>	sc2005 deadlock method p1
+sc2005-dl-request	Cloze	NTU::SC2005::Deadlock	Banker's request: if Request &gt; Need → {{c1::error (exceeds max claim)}}; if Request &gt; Available → {{c2::wait}}; else pretend-allocate and {{c3::run the safety check}}.	Unsafe → restore the old state; process waits.<br><small>Part 5 (Deadlocks)</small>	sc2005 deadlock method p1
+sc2005-rt-meaning	Basic	NTU::SC2005::RTOS	Real-time means…?	Predictable: deadlines met even in the worst case. Not "fast".<br><small>Part 6a · Tutorial 7</small>	sc2005 rtos tf-trap p1
+sc2005-rt-rmedf	Basic	NTU::SC2005::RTOS	RM vs EDF priority?	RM: fixed, shorter period T = higher. EDF: dynamic, earliest absolute deadline of the instance = higher.<br><small>Part 6a</small>	sc2005 rtos pair p1
+sc2005-rt-edf-tradeoff	Basic	NTU::SC2005::RTOS	EDF vs RM trade-off?	EDF is more powerful but harder (online sorting) and unpredictable under overload. RM is simpler and predictable for high-priority tasks.<br><small>Part 6a</small>	sc2005 rtos pair p2
+sc2005-rt-proc	Cloze	NTU::SC2005::RTOS	Periodic process &lt;T, C, D&gt;: released at {{c1::0, T, 2T, …}}; each instance needs {{c2::C units}} before {{c3::R + D}}.	<small>Part 6a</small>	sc2005 rtos formula p1
+sc2005-vm-mech	Basic	NTU::SC2005::Virtualization	Multiplexing vs aggregation vs emulation?	Multiplexing: one → many (vCPUs). Aggregation: many → one (RAID). Emulation: one appears as another kind (JVM, RAM disk, Rosetta).<br><small>Part 6b</small>	sc2005 virtualization pair p1
+sc2005-vm-types	Basic	NTU::SC2005::Virtualization	Type 1 vs Type 2 hypervisor?	Type 1: VMM is the host OS, on bare metal (Xen, vSphere). Type 2: VMM extends a host OS (KVM + Linux).<br><small>Part 6b</small>	sc2005 virtualization pair p1
+sc2005-vm-para	Basic	NTU::SC2005::Virtualization	Full vs para-virtualization?	Full: guest unmodified and unaware. Para: guest modified to call the hypervisor API; faster.<br><small>Part 6b</small>	sc2005 virtualization pair p1
+sc2005-vm-hyp-tf	Basic	NTU::SC2005::Virtualization	True or false: a hypervisor manages interactions between a guest OS and its applications.	<b>False.</b> It manages guest OS ↔ hardware.<br><small>Tutorial 7</small>	sc2005 virtualization tf-trap p2
+sc2005-vm-raid	Cloze	NTU::SC2005::Virtualization	RAID capacity with n disks of size N: striping {{c1::N·n}}; mirroring {{c2::N}} (n = 2); distributed parity {{c3::N(n−1)}}.	<small>Part 6b</small>	sc2005 virtualization formula p3
+sc2005-mem-compact	Basic	NTU::SC2005::Memory	Memory compaction requires which binding?	Execution-time binding (relocatable code + base register). Impossible with absolute addresses.<br><small>Part 7 · Tutorial 8</small>	sc2005 memory concept p1
+sc2005-mem-frag	Basic	NTU::SC2005::Memory	Which schemes have internal vs external fragmentation?	Internal: fixed partitioning, paging. External: dynamic partitioning, segmentation, contiguous file allocation.<br><small>Part 7 · Tutorial 8</small>	sc2005 memory pair p1
+sc2005-mem-fits	Basic	NTU::SC2005::Memory	First-fit vs best-fit vs worst-fit?	First: first big-enough hole. Best: smallest that fits (searches all; smallest leftover). Worst: largest hole (largest leftover).<br><small>Part 7</small>	sc2005 memory pair p2
+sc2005-mem-eat	Cloze	NTU::SC2005::Memory	TLB effective access time: EAT = {{c1::α(ε + τ) + (1 − α)(ε + 2τ)}}	τ = 200 ns, α = 0.75, ε = 0 → 250 ns.<br><small>Part 7 · Tutorial 8</small>	sc2005 memory formula p1
+sc2005-mem-bits	Cloze	NTU::SC2005::Memory	Paging: m-bit logical address, page size 2^n → offset {{c1::n}} bits, page number {{c2::m − n}} bits, page-table entries {{c3::2^(m−n)}}.	Inverted page table entries = number of frames.<br><small>Part 7</small>	sc2005 memory formula p1
+sc2005-mem-2level	Cloze	NTU::SC2005::Memory	32-bit, 4 KB pages, 4 B entries → two-level split {{c1::10 | 10 | 12}}.	Entries per page = 4096/4 = 2^10.<br><small>Part 7</small>	sc2005 memory formula p1
+sc2005-mem-inverted	Basic	NTU::SC2005::Memory	Inverted page table: entries per what, and trade-off?	One per physical frame, holding &lt;pid, page#&gt;. Saves memory, slower lookup (search).<br><small>Part 7 · Tutorial 8</small>	sc2005 memory concept p2
+sc2005-mem-seg	Cloze	NTU::SC2005::Memory	Segmentation &lt;s, d&gt;: if d {{c1::≥ limit}} → trap; else physical = {{c2::base + d}}.	&lt;3, 128&gt;, base 3200, limit 1100 → 3328.<br><small>Part 7</small>	sc2005 memory method p1
+sc2005-vmem-belady	Basic	NTU::SC2005::Virtual memory	Which algorithm suffers Belady's anomaly?	FIFO (1,2,3,4,1,2,5,1,2,3,4,5: 9 faults with 3 frames, 10 with 4). OPT and LRU don't (inclusion property).<br><small>Part 8</small>	sc2005 virtual-memory concept p1
+sc2005-vmem-faults	Cloze	NTU::SC2005::Virtual memory	Ref string 1 2 3 4 1 2 5 1 2 3 4 5, 4 frames: OPT {{c1::6}}, LRU {{c2::8}}, Clock {{c3::8}} faults.	<small>Part 8</small>	sc2005 virtual-memory formula p2
+sc2005-vmem-clock	Basic	NTU::SC2005::Virtual memory	Clock algorithm: what happens on a fault, and when does it become FIFO?	At the hand: R = 1 → clear and advance; R = 0 → replace, advance. All R = 1 → one full lap → FIFO.<br><small>Part 8</small>	sc2005 virtual-memory method p1
+sc2005-vmem-eatpf	Cloze	NTU::SC2005::Virtual memory	Demand paging EAT = {{c1::(1 − p) × memory access + p × page-fault time}}	<small>Part 8</small>	sc2005 virtual-memory formula p2
+sc2005-vmem-dirty	Basic	NTU::SC2005::Virtual memory	Why use a dirty (modify) bit?	Only modified pages are written back on replacement, saving one of the two transfers.<br><small>Part 8</small>	sc2005 virtual-memory concept p2
+sc2005-vmem-thrash	Basic	NTU::SC2005::Virtual memory	Thrashing: cause and two fixes?	Too few frames → high fault rate → low CPU use → OS adds processes → worse. Fixes: working-set model (D = ΣWSS &gt; m → suspend a process), page-fault frequency.<br><small>Part 8</small>	sc2005 virtual-memory concept p1
+sc2005-vmem-improve	Basic	NTU::SC2005::Virtual memory	Thrashing with the paging disk saturated: what improves CPU utilization?	Yes: more memory, fewer processes. Probably: faster paging disk. No: faster CPU, bigger paging disk, more processes.<br><small>Tutorial 10</small>	sc2005 virtual-memory tf-trap p2
+sc2005-vmem-pfsteps	Basic	NTU::SC2005::Virtual memory	Page-fault handling steps?	Check PT → trap, save state → find page on disk → get frame (replace if needed), schedule read → update PT (valid, frame) → restore state, restart instruction.<br><small>Part 8</small>	sc2005 virtual-memory method p2
+sc2005-fs-alloc	Basic	NTU::SC2005::File systems	Which file-allocation method lacks random access?	Linked: block k needs k pointer hops. Contiguous and indexed support random access.<br><small>Part 9</small>	sc2005 file-systems concept p1
+sc2005-fs-linked	Cloze	NTU::SC2005::File systems	Linked allocation, block B, pointer p: LA = Q·{{c1::(B − p)}} + R → read the {{c2::(Q+1)th}} block in the chain at byte {{c3::R + p}}.	2333 = 4·508 + 301 → 5th block, byte 305.<br><small>Part 9</small>	sc2005 file-systems formula p1
+sc2005-fs-inode	Cloze	NTU::SC2005::File systems	inode: {{c1::12}} direct pointers, then single, double, triple indirect. Pointers per block = {{c2::block size ÷ pointer size}}.	4 KB blocks, 4 B pointers → 48 KB + 4 MB + 4 GB + …<br><small>Part 9</small>	sc2005 file-systems formula p1
+sc2005-fs-open5	Basic	NTU::SC2005::File systems	Disk reads for open("/usr/ast/mbox"), root dir in memory?	5: inode usr, dir block usr, inode ast, dir block ast, inode mbox. seek() = 0 reads.<br><small>Tutorial 11</small>	sc2005 file-systems method p1
+sc2005-fs-dirx	Basic	NTU::SC2005::File systems	Directory permissions: x, r, w?	x: needed to access anything under it. No r: can't list. No w: can't create/delete files in it.<br><small>Part 9</small>	sc2005 file-systems concept p2
+sc2005-fs-links	Basic	NTU::SC2005::File systems	Symbolic vs hard link?	Symbolic: stores a path name, resolved on use (slower). Hard: duplicates the file info in several directories.<br><small>Part 9</small>	sc2005 file-systems pair p2
+sc2005-fs-tables	Basic	NTU::SC2005::File systems	Per-process vs system-wide open-file table?	Per-process: current position, permissions. System-wide: FCB copy, open count. open() returns the per-process index (fd).<br><small>Part 9</small>	sc2005 file-systems pair p2
+sc2005-io-buf-cache	Basic	NTU::SC2005::I/O and disk	Buffering vs caching vs spooling?	Buffering: speed/size mismatch. Caching: fast copy for files written and re-read rapidly. Spooling: hold output for one-at-a-time devices (printers).<br><small>Part 10 · Tutorial 12</small>	sc2005 i-o-and-disk pair p1
+sc2005-io-driver-tf	Basic	NTU::SC2005::I/O and disk	True or false: device drivers are part of the kernel I/O subsystem.	<b>False.</b> They are a separate layer below it.<br><small>Tutorial 12</small>	sc2005 i-o-and-disk tf-trap p2
+sc2005-io-sstf	Basic	NTU::SC2005::I/O and disk	Which disk algorithm can starve requests?	SSTF (like SJF for seeks).<br><small>Part 10</small>	sc2005 i-o-and-disk concept p1
+sc2005-io-disk	Cloze	NTU::SC2005::I/O and disk	Queue 98 183 37 122 14 124 65 67, head 53: FCFS {{c1::640}}, SSTF {{c2::236}}, C-SCAN up {{c3::382}}, C-LOOK up {{c4::322}}.	Slides count the return jump.<br><small>Part 10</small>	sc2005 i-o-and-disk formula p2
+sc2005-io-salesman	Basic	NTU::SC2005::I/O and disk	SCAN performed like FCFS on random reads. Why?	Requests were issued one at a time, so there was nothing to reorder.<br><small>Tutorial 12</small>	sc2005 i-o-and-disk tf-trap p2
+sc2005-io-time	Cloze	NTU::SC2005::I/O and disk	Disk access time = {{c1::seek}} + {{c2::rotational latency (half a rotation)}} + {{c3::(N ÷ sectors per track) × full rotation}}.	<small>Part 10</small>	sc2005 i-o-and-disk formula p2</script>
+<script>
+const $=s=>document.querySelector(s);
+const DAY=86400000, MIN=60000, STEPS=[1,10];
+/* ---------- storage ---------- */
+const KEY='flashdeck.v1'; // kept from the old name so existing progress carries over
+let DB={notes:{},prog:{},newDay:{date:'',count:0},settings:{newPerDay:20}};
+let canStore=true;
+function load(){ try{ const s=localStorage.getItem(KEY); if(s) DB=Object.assign(DB,JSON.parse(s)); }catch(e){ canStore=false; } }
+function save(){ if(!canStore) return; try{ localStorage.setItem(KEY,JSON.stringify(DB)); }catch(e){ canStore=false; } }
+const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); };
+const endOfDay=()=>{ const d=new Date(); d.setHours(23,59,59,999); return +d; };
+
+/* ---------- parse Anki text ---------- */
+function hash(s){ let h=2166136261; for(const c of s){ h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return 'h'+(h>>>0).toString(36); }
+function parseAnki(text,fallbackDeck){
+  const H={sep:'\t',html:true,guid:0,nt:0,deck:0,tags:0,deckName:fallbackDeck||'Imported',ntName:''};
+  const out=[]; const lines=text.replace(/\r/g,'').split('\n');
+  for(const raw of lines){
+    if(!raw.trim()) continue;
+    if(raw.startsWith('#')){ const m=raw.match(/^#([a-z ]+):(.*)$/i); if(!m) continue; const k=m[1].trim().toLowerCase(), v=m[2].trim();
+      if(k==='separator') H.sep={tab:'\t',comma:',',semicolon:';',pipe:'|',space:' '}[v.toLowerCase()]||v;
+      else if(k==='html') H.html=v==='true'; else if(k==='guid column') H.guid=+v; else if(k==='notetype column') H.nt=+v;
+      else if(k==='deck column') H.deck=+v; else if(k==='tags column') H.tags=+v; else if(k==='deck') H.deckName=v; else if(k==='notetype') H.ntName=v;
+      continue; }
+    const cols=raw.split(H.sep); const meta=new Set([H.guid,H.nt,H.deck,H.tags].filter(Boolean));
+    const fields=cols.filter((_,i)=>!meta.has(i+1));
+    const f1=fields[0]||'', f2=fields[1]||''; if(!f1.trim()) continue;
+    let nt=H.nt?cols[H.nt-1]:H.ntName; if(!nt) nt=/\{\{c\d+::/.test(f1)?'Cloze':'Basic';
+    nt=/cloze/i.test(nt)?'Cloze':'Basic';
+    out.push({guid:H.guid?cols[H.guid-1]:hash(f1),type:nt,deck:(H.deck?cols[H.deck-1]:H.deckName)||H.deckName,f1:H.html?f1:esc(f1),f2:H.html?f2:esc(f2),tags:(H.tags?cols[H.tags-1]||'':'').trim().split(/\s+/).filter(Boolean)});
+  }
+  return out;
+}
+function esc(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function importText(text,name){
+  const notes=parseAnki(text,name); let add=0,upd=0,same=0;
+  for(const n of notes){ const o=DB.notes[n.guid]; if(!o){DB.notes[n.guid]=n;add++;} else if(JSON.stringify(o)!==JSON.stringify(n)){DB.notes[n.guid]=n;upd++;} else same++; }
+  save(); return {add,upd,same,total:notes.length};
+}
+/* ---------- cards ---------- */
+function clozeNums(t){ return [...new Set([...t.matchAll(/\{\{c(\d+)::/g)].map(m=>+m[1]))].sort((a,b)=>a-b); }
+function allCards(){ const cs=[]; for(const n of Object.values(DB.notes)){ if(n.type==='Cloze'){ const ns=clozeNums(n.f1); (ns.length?ns:[1]).forEach(k=>cs.push({id:n.guid+'#'+k,n,k})); } else cs.push({id:n.guid+'#1',n,k:1}); } return cs; }
+function prog(id){ return DB.prog[id]||{state:'new',due:0,ivl:0,ease:2.5,step:0,reps:0,lapses:0}; }
+/* ---------- filters ---------- */
+let F={deck:'',tag:''};
+const inFilter=c=>(!F.deck||c.n.deck===F.deck||c.n.deck.startsWith(F.deck+'::'))&&(!F.tag||c.n.tags.includes(F.tag));
+/* ---------- scheduler (SM-2 style, like Anki's classic scheduler) ---------- */
+function preview(p,g){ // returns new progress
+  const q={...p}; const now=Date.now();
+  if(p.state==='new'||p.state==='learn'||p.state==='relearn'){
+    const steps=p.state==='relearn'?[10]:STEPS; let st=p.state==='new'?0:p.step;
+    if(g===1){ q.state=p.state==='relearn'?'relearn':'learn'; q.step=0; q.due=now+steps[0]*MIN; }
+    else if(g===2){ q.state=p.state==='relearn'?'relearn':'learn'; q.step=st; q.due=now+(st+1<steps.length?(steps[st]+steps[st+1])/2:steps[st]*1.5)*MIN; }
+    else if(g===3){ if(p.state!=='new'&&st+1>=steps.length || p.state==='new'&&steps.length===1){ q.state='review'; q.ivl=p.state==='relearn'?Math.max(1,p.ivl):1; q.due=now+q.ivl*DAY; } else { q.state=p.state==='new'?'learn':p.state; q.step=p.state==='new'?Math.min(1,steps.length-1):st+1; q.due=now+steps[q.step]*MIN; if(p.state==='new'&&steps.length>1){q.step=1;} } }
+    else { q.state='review'; q.ivl=p.state==='relearn'?Math.max(2,p.ivl):4; q.due=now+q.ivl*DAY; }
+  } else {
+    if(g===1){ q.state='relearn'; q.lapses=p.lapses+1; q.ease=Math.max(1.3,p.ease-0.2); q.ivl=1; q.step=0; q.due=now+10*MIN; }
+    else if(g===2){ q.ease=Math.max(1.3,p.ease-0.15); q.ivl=Math.max(p.ivl+1,Math.round(p.ivl*1.2)); q.due=now+q.ivl*DAY; }
+    else if(g===3){ q.ivl=Math.max(p.ivl+1,Math.round(p.ivl*p.ease)); q.due=now+q.ivl*DAY; }
+    else { q.ease=p.ease+0.15; q.ivl=Math.max(p.ivl+2,Math.round(p.ivl*p.ease*1.3)); q.due=now+q.ivl*DAY; }
+  }
+  q.reps=p.reps+1; return q;
+}
+function fmtIvl(ms){ const m=Math.round(ms/MIN); if(m<60) return m+'m'; const h=m/60; if(h<24) return Math.round(h)+'h'; const d=h/24; if(d<30) return Math.round(d)+'d'; if(d<365) return (d/30).toFixed(1)+'mo'; return (d/365).toFixed(1)+'y'; }
+/* ---------- session ---------- */
+let MODE='study', cur=null, shown=false, cramQ=[], misses=[], cramDone=0;
+function newLeft(){ if(DB.newDay.date!==today()) DB.newDay={date:today(),count:0}; return Math.max(0,DB.settings.newPerDay-DB.newDay.count); }
+function counts(pred){ const now=Date.now(), eod=endOfDay(); let n=0,l=0,d=0; for(const c of allCards()){ if(!pred(c)) continue; const p=prog(c.id); if(p.state==='new') n++; else if(p.state!=='review'){ if(p.due<=eod) l++; } else if(p.due<=eod) d++; } return {n,l,d}; }
+function nextStudy(){
+  const now=Date.now(), eod=endOfDay(); const cs=allCards().filter(inFilter);
+  const lrn=cs.filter(c=>{const p=prog(c.id);return (p.state==='learn'||p.state==='relearn')&&p.due<=now;}).sort((a,b)=>prog(a.id).due-prog(b.id).due);
+  if(lrn.length) return lrn[0];
+  const rev=cs.filter(c=>{const p=prog(c.id);return p.state==='review'&&p.due<=eod;}).sort((a,b)=>prog(a.id).due-prog(b.id).due);
+  if(rev.length) return rev[0];
+  if(newLeft()>0){ const nw=cs.filter(c=>prog(c.id).state==='new'); if(nw.length){ // keep sibling cloze cards apart: order by note then cloze number spread
+      nw.sort((a,b)=>a.k-b.k||(a.n.deck<b.n.deck?-1:a.n.deck>b.n.deck?1:0)); return nw[0]; } }
+  const soon=cs.filter(c=>{const p=prog(c.id);return (p.state==='learn'||p.state==='relearn')&&p.due<=eod;}).sort((a,b)=>prog(a.id).due-prog(b.id).due);
+  return soon.length?{wait:soon[0]}:null;
+}
+function startCram(){ cramQ=allCards().filter(inFilter).map(c=>({c,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.c); cramDone=0; }
+/* ---------- render ---------- */
+const ALLOWED=new Set(['B','I','U','EM','STRONG','BR','SMALL','CODE','SUB','SUP','UL','OL','LI','P','DIV','SPAN']);
+function clean(html){ const doc=new DOMParser().parseFromString('<body>'+html+'</body>','text/html'); const out=document.createElement('div');
+  (function walk(src,dst){ for(const n of src.childNodes){ if(n.nodeType===3) dst.appendChild(document.createTextNode(n.textContent)); else if(n.nodeType===1){ const t=n.tagName; if(ALLOWED.has(t)){ const e=document.createElement(t); walk(n,e); dst.appendChild(e); } else walk(n,dst); } } })(doc.body,out);
+  return out.innerHTML; }
+function renderCloze(t,k,reveal){ return t.replace(/\{\{c(\d+)::([\s\S]*?)(?:::([^}]*?))?\}\}/g,(m,num,ans,hint)=>+num===k?(reveal?`<span class="cloze">${ans}</span>`:`<span class="cloze">[${hint||'…'}]</span>`):ans); }
+function typeset(){ if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([$('#card')]).catch(()=>{}); }
+function draw(){
+  const card=$('#card'), act=$('#actions'); card.classList.remove('tap');
+  $('#misses').hidden=!misses.length;
+  if(!Object.keys(DB.notes).length){ card.innerHTML='<div class="done">No cards yet. Import an Anki .txt file from the sidebar.</div>'; act.innerHTML=''; return side(); }
+  if(MODE==='cram'){ if(!cramQ.length){ card.innerHTML=`<div class="done">Cram run finished: ${cramDone} cards${misses.length?`, ${misses.length} missed. Copy them for your mistakes log.`:'.'}</div>`; act.innerHTML='<div class="row" style="justify-content:center"><button class="primary" id="again">Cram again</button></div>'; $('#again').onclick=()=>{startCram();misses=[];shown=false;draw();}; return side(); } cur=cramQ[0]; }
+  else { const nx=nextStudy(); if(!nx||nx.wait){ cur=null; card.innerHTML=`<div class="done">${nx?`Done for now. Next learning card in ${fmtIvl(prog(nx.wait.id).due-Date.now())}.`:'All caught up for today in this selection.'}<br><span style="font-size:14px">Use <b>Cram all</b> to drill everything before an exam.</span></div>`; act.innerHTML=''; if(nx) setTimeout(()=>{ if(MODE==='study'&&!cur) draw(); },Math.min(60000,prog(nx.wait.id).due-Date.now()+500)); return side(); } cur=nx; }
+  const n=cur.n, p=prog(cur.id);
+  const front=n.type==='Cloze'?renderCloze(clean(n.f1),cur.k,false):clean(n.f1);
+  const back=n.type==='Cloze'?renderCloze(clean(n.f1),cur.k,true)+(n.f2?'<hr>'+clean(n.f2):''):front+'<hr>'+clean(n.f2);
+  const label=MODE==='cram'?`cram · ${cramQ.length} left`:p.state==='new'?'new':p.state==='review'?`review · ivl ${p.ivl}d`:'learning';
+  card.classList.toggle('tap',!shown); card.innerHTML=`<div class="meta"><span>${esc(n.deck.replace(/::/g,' › '))}</span><span>${label}</span></div><div>${shown?back:front}</div>${shown?'':'<div class="tapnote">Tap the card or press a clicker to reveal</div>'}`;
+  if(!shown){ act.innerHTML='<div class="row" style="justify-content:center"><button class="primary" id="show" style="min-width:220px">Show answer</button></div>'; $('#show').onclick=()=>{shown=true;draw();}; }
+  else { const names=['Again','Hard','Good','Easy']; act.innerHTML='<div class="grades">'+names.map((nm,i)=>`<button class="g${i+1}" data-g="${i+1}">${nm}<span>${MODE==='cram'?(i===0?'re-ask soon':'next'):fmtIvl(preview(p,i+1).due-Date.now())}</span></button>`).join('')+'</div>';
+    act.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>grade(+b.dataset.g)); }
+  typeset(); side();
+}
+function grade(g){ if(!cur||!shown) return;
+  if(g===1&&!misses.some(m=>m.id===cur.id)) misses.push({id:cur.id,n:cur.n,k:cur.k});
+  if(MODE==='cram'){ const c=cramQ.shift(); cramDone++; if(g===1) cramQ.splice(Math.min(3,cramQ.length),0,c); }
+  else { const p=prog(cur.id); if(p.state==='new'){ newLeft(); DB.newDay.count++; } DB.prog[cur.id]=preview(p,g); save(); }
+  shown=false; draw(); }
+function side(){
+  const decks={}; for(const n of Object.values(DB.notes)){ const parts=n.deck.split('::'); for(let i=1;i<=parts.length;i++) decks[parts.slice(0,i).join('::')]=true; }
+  const names=Object.keys(decks).sort();
+  const row=(name,label,depth)=>{ const c=counts(x=>!name||x.n.deck===name||x.n.deck.startsWith(name+'::')); return `<button class="deck" data-deck="${esc(name)}" aria-pressed="${F.deck===name}" style="padding-left:${8+depth*14}px"><span>${esc(label)}</span><span class="counts"><span class="c-new">${c.n}</span><span class="c-lrn">${c.l}</span><span class="c-due">${c.d}</span></span></button>`; };
+  $('#decks').innerHTML=row('','All decks',0)+names.map(nm=>row(nm,nm.split('::').pop(),nm.split('::').length-1)).join('');
+  const tags={}; for(const n of Object.values(DB.notes)) n.tags.forEach(t=>tags[t]=(tags[t]||0)+1);
+  const order=['p1','p2','p3','tf-trap','formula','method','concept','pair','mistake'];
+  const tl=Object.keys(tags).sort((a,b)=>(order.indexOf(a)<0?99:order.indexOf(a))-(order.indexOf(b)<0?99:order.indexOf(b))||a.localeCompare(b));
+  $('#tags').innerHTML=`<button class="chip" data-tag="" aria-pressed="${!F.tag}">all</button>`+tl.map(t=>`<button class="chip" data-tag="${esc(t)}" aria-pressed="${F.tag===t}">${esc(t)} <span style="opacity:.6">${tags[t]}</span></button>`).join('');
+  const c=counts(inFilter), total=allCards().filter(inFilter).length, learned=allCards().filter(x=>inFilter(x)&&prog(x.id).state==='review').length;
+  $('#stats').innerHTML=`<div class="stat"><b class="c-due">${c.d}</b><span>reviews due today</span></div><div class="stat"><b class="c-lrn">${c.l}</b><span>learning</span></div><div class="stat"><b class="c-new">${Math.min(c.n,newLeft())}</b><span>new today (of ${c.n})</span></div><div class="stat"><b>${learned}/${total}</b><span>cards graduated</span></div>`;
+  const now=new Date(); now.setHours(0,0,0,0); const days=[...Array(7)].map((_,i)=>({s:+now+i*DAY,e:+now+(i+1)*DAY,n:0}));
+  for(const x of allCards()){ if(!inFilter(x)) continue; const p=prog(x.id); if(p.state==='new') continue; const d=days.find(d=>p.due>=d.s&&p.due<d.e)||(p.due<days[0].s?days[0]:null); if(d) d.n++; }
+  const mx=Math.max(1,...days.map(d=>d.n)); const wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  $('#fc').innerHTML=days.map((d,i)=>`<div title="${d.n} due"><span>${d.n}</span><i style="height:${Math.round(d.n/mx*34)}px"></i><span>${i?wd[new Date(d.s).getDay()]:'today'}</span></div>`).join('');
+}
+/* ---------- events ---------- */
+function showMsg(el,t){ el.hidden=false; el.textContent=t; }
+async function readFiles(files){ let a=0,u=0,s=0; for(const f of files){ const r=importText(await f.text(),f.name.replace(/\.[^.]+$/,'')); a+=r.add;u+=r.upd;s+=r.same; } showMsg($('#impMsg'),`Imported: ${a} new, ${u} updated, ${s} unchanged notes. Progress kept.`); if(MODE==='cram') startCram(); shown=false; draw(); }
+$('#file').onchange=e=>readFiles([...e.target.files]);
+const drop=$('#drop'); ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>readFiles([...e.dataTransfer.files]));
+$('#pasteGo').onclick=()=>{ const r=importText($('#paste').value,'Pasted'); showMsg($('#impMsg'),`Imported: ${r.add} new, ${r.upd} updated, ${r.same} unchanged notes.`); draw(); };
+$('#decks').onclick=e=>{ const b=e.target.closest('[data-deck]'); if(!b) return; F.deck=b.dataset.deck; if(MODE==='cram') startCram(); shown=false; draw(); };
+$('#tags').onclick=e=>{ const b=e.target.closest('[data-tag]'); if(!b) return; F.tag=b.dataset.tag; if(MODE==='cram') startCram(); shown=false; draw(); };
+function setMode(m){ MODE=m; $('#mStudy').setAttribute('aria-pressed',m==='study'); $('#mCram').setAttribute('aria-pressed',m==='cram'); $('#mStudy').className=m==='study'?'primary':''; $('#mCram').className=m==='cram'?'primary':''; if(m==='cram') startCram(); shown=false; draw(); }
+$('#mStudy').onclick=()=>setMode('study'); $('#mCram').onclick=()=>setMode('cram');
+$('#newPerDay').onchange=e=>{ DB.settings.newPerDay=Math.max(0,+e.target.value||0); save(); draw(); };
+function plain(h){ const d=document.createElement('div'); d.innerHTML=h; return d.textContent.replace(/\s+/g,' ').trim(); }
+$('#misses').onclick=async()=>{ const d=new Date().toISOString().slice(0,10);
+  const rows=misses.map(m=>{ const q=m.n.type==='Cloze'?plain(renderCloze(m.n.f1,m.k,false)):plain(m.n.f1); const a=m.n.type==='Cloze'?plain((m.n.f1.match(new RegExp('\\{\\{c'+m.k+'::([\\s\\S]*?)(::|\\}\\})'))||[,''])[1]):plain(m.n.f2.replace(/<small>[\s\S]*?<\/small>/g,''));
+    const src=(m.n.f2.match(/<small>([\s\S]*?)<\/small>/)||[,''])[1]; return `| ${d} | ${m.n.deck.split('::').pop()} | ${q.slice(0,90).replace(/\|/g,'/')} | forgot | ${a.slice(0,90).replace(/\|/g,'/')} | | Kioku${src?', '+plain(src):''} |`; }).join('\n');
+  try{ await navigator.clipboard.writeText(rows); $('#misses').textContent=`Copied ${misses.length} rows`; }catch(e){ $('#paste').value=rows; $('#paste').closest('details').open=true; showMsg($('#impMsg'),'Copy was blocked, so the rows are in the paste box above: select and copy them.'); } };
+$('#bkCopy').onclick=async()=>{ try{ await navigator.clipboard.writeText(JSON.stringify(DB)); showMsg($('#bkMsg'),'Backup copied. Paste it into Restore on the other device.'); }catch(e){ $('#bkIn').value=JSON.stringify(DB); showMsg($('#bkMsg'),'Copy was blocked: the backup is in the box below, copy it from there.'); } };
+$('#bkDl').onclick=()=>{ try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(DB)],{type:'application/json'})); a.download='kioku-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); showMsg($('#bkMsg'),'If nothing downloaded, use Copy progress backup instead (some viewers block downloads).'); }catch(e){ showMsg($('#bkMsg'),'Download blocked here. Use Copy progress backup.'); } };
+$('#bkRestore').onclick=()=>{ try{ const o=JSON.parse($('#bkIn').value); if(!o.notes||!o.prog) throw 0; DB=Object.assign(DB,o); save(); showMsg($('#bkMsg'),`Restored ${Object.keys(o.notes).length} notes and their progress.`); draw(); }catch(e){ showMsg($('#bkMsg'),'That doesn\'t look like a Kioku backup. Paste the whole text you copied.'); } };
+/* ---------- appearance: theme + card text size ---------- */
+const THEMES=[['auto','Auto (Washi / Yoru)','',''],['washi','Washi 和紙 · warm paper','#f5f0e6','#2c4a7c'],['hojicha','Hōjicha ほうじ茶 · sepia','#e9dfcc','#7a4f2a'],['matcha','Matcha 抹茶 · sage','#e7ece2','#3d6a4f'],['yoru','Yoru 夜 · warm dark','#24211e','#9bb8ea'],['sumi','Sumi 墨 · dim night','#111010','#cfae74']];
+const pref=(k,d)=>{ try{ return localStorage.getItem('kioku.'+k)||d; }catch(e){ return d; } };
+const setPref=(k,v)=>{ try{ localStorage.setItem('kioku.'+k,v); }catch(e){} };
+function applyTheme(t){ const root=document.documentElement; if(t==='auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme',t); setPref('theme',t);
+  $('#themes').querySelectorAll('[data-t]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));
+  $('#themeName').textContent=THEMES.find(x=>x[0]===t)[1];
+  requestAnimationFrame(()=>{ const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=getComputedStyle(root).getPropertyValue('--bg').trim(); }); }
+function applySize(z){ document.documentElement.setAttribute('data-size',z); setPref('size',z); $('#sizes').querySelectorAll('[data-size]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.size===z)); }
+$('#themes').innerHTML=THEMES.map(([id,name,a,b])=>`<button class="sw${id==='auto'?' auto':''}" data-t="${id}" title="${name}" aria-label="${name}" style="--a:${a};--b:${b}">${id==='auto'?'A':''}</button>`).join('');
+$('#themes').onclick=e=>{ const b=e.target.closest('[data-t]'); if(b) applyTheme(b.dataset.t); };
+$('#sizes').onclick=e=>{ const b=e.target.closest('[data-size]'); if(b){ applySize(b.dataset.size); } };
+applyTheme(THEMES.some(x=>x[0]===pref('theme','auto'))?pref('theme','auto'):'auto'); applySize(pref('size','m'));
+function applyFocus(on){ $('.app').classList.toggle('focus',on); $('#focusBtn').textContent=on?'Show sidebar':'Focus'; $('#focusBtn').setAttribute('aria-pressed',on); setPref('focus',on?'1':''); }
+$('#focusBtn').onclick=()=>applyFocus(!$('.app').classList.contains('focus')); applyFocus(pref('focus','')==='1');
+function toast(t){ let el=$('#toast'); if(!el){ el=document.createElement('div'); el.id='toast'; el.className='toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2200); }
+/* ---------- controls: keyboard, presentation clickers, game controllers, tap ---------- */
+// One entry point for every input. Before the answer is shown, any control reveals it.
+function control(g){ if(!cur) return; if(!shown){ shown=true; draw(); return; } grade(g); }
+const KEYMAP={Digit1:1,Numpad1:1,ArrowLeft:1,PageUp:1, Digit2:2,Numpad2:2,ArrowDown:2, Digit3:3,Numpad3:3,ArrowRight:3,PageDown:3,Space:3,Enter:3,NumpadEnter:3, Digit4:4,Numpad4:4,ArrowUp:4};
+document.addEventListener('keydown',e=>{ const ae=document.activeElement;
+  if(/INPUT|TEXTAREA|SELECT/.test(ae.tagName)||e.metaKey||e.ctrlKey||e.altKey) return;
+  if(ae.tagName==='BUTTON'&&(e.code==='Space'||e.code==='Enter')) return; // let a focused button do its own click
+  const g=KEYMAP[e.code]||(/^[1-4]$/.test(e.key)?+e.key:0); if(!g||!cur) return;
+  e.preventDefault(); if(!e.repeat) control(g); });
+$('#card').addEventListener('click',e=>{ if(cur&&!shown&&!getSelection().toString()){ shown=true; draw(); } });
+// Game controllers (Bluetooth Xbox / PlayStation / Switch Pro pads work on iPad Safari).
+const PAD={0:3,1:1,2:2,3:4,12:4,13:2,14:1,15:3,4:1,5:3,6:1,7:3};
+let padRAF=0; const padPrev={};
+function padLoop(){ const pads=[...(navigator.getGamepads?navigator.getGamepads():[])].filter(Boolean); if(!pads.length){ padRAF=0; return; }
+  for(const p of pads) p.buttons.forEach((b,i)=>{ const k=p.index+':'+i; if(b.pressed&&!padPrev[k]&&PAD[i]) control(PAD[i]); padPrev[k]=b.pressed; });
+  padRAF=requestAnimationFrame(padLoop); }
+addEventListener('gamepadconnected',e=>{ toast('Controller connected: A Good · B Again · X Hard · Y Easy'); if(!padRAF) padLoop(); });
+/* ---------- offline: cache the app so it opens without signal (GitHub Pages / localhost only) ---------- */
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* ---------- boot: stored cards, then decks/manifest.json (GitHub Pages), then the built-in deck ---------- */
+(async()=>{
+  load(); $('#newPerDay').value=DB.settings.newPerDay;
+  let fromManifest=false;
+  try{ const r=await fetch('decks/manifest.json',{cache:'no-store'}); if(r.ok){ const m=await r.json(); for(const p of (m.decks||[])){ const t=await (await fetch(p,{cache:'no-store'})).text(); importText(t,p.split('/').pop().replace(/\.[^.]+$/,'')); fromManifest=true; } } }catch(e){}
+  if(!fromManifest&&!Object.keys(DB.notes).length){ const b=$('#builtin').textContent.trim(); if(b&&b!=='__DECK__') importText(b,'Built-in'); }
+  draw();
+})();
+</script>
+</body></html>
