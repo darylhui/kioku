@@ -35,6 +35,8 @@ Pick a colour theme and card text size under **Appearance** in the sidebar: Wash
 
 ## Adding or updating decks
 
+- Tap **?** (top of the sidebar) for step-by-step instructions: what course material to download, and a ready-made prompt to paste into Claude, ChatGPT or Gemini that writes the deck file for you.
+
 - The app starts empty. To have a deck load automatically, copy it into `decks/` and list it in `decks/manifest.json`. For example:
   `{"decks":["decks/sc2005-anki.txt"]}` (an empty list, `{"decks":[]}`, loads nothing)
 - Commit. The app re-reads the manifest each time it opens (when online; offline it uses the last copy it saw).
