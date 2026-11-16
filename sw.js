@@ -1,6 +1,6 @@
 /* Kioku offline cache: try the network first (so deck updates show up), fall back to the
    last saved copy after 3 seconds or when offline. Bump CACHE to force a clean refresh. */
-const CACHE = 'kioku-v1';
+const CACHE = 'kioku-v2';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'decks/manifest.json',
   'icons/favicon.svg', 'icons/apple-touch-icon.png', 'icons/icon-192.png'];
 
